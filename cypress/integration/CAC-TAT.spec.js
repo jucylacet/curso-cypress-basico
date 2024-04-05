@@ -36,7 +36,7 @@ describe("Central de Atendimento ao Cliente TAT", function () {
   it("campo telefone continua vazio quando preenchido com valor não numérico", function () {
     cy.get("#phone").type("abcdefghij").should("have.value", "");
   });
-  it.only("exibe mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário", function () {
+  it("exibe mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário", function () {
     cy.get("#firstName").type("Nome");
     cy.get("#lastName").type("Sobrenome");
     cy.get("#email").type("email@email.com");
@@ -81,43 +81,75 @@ describe("Central de Atendimento ao Cliente TAT", function () {
 
   // Testes em input tipo SELECT
   it("Seleciona um produto (Youtube) por seu texto", function () {
-    cy.get('#product')
-    // Não passou no teste com valor do texto Youtube
-        .select('youtube')
-        .should('have.value', 'youtube')
+    cy.get("#product")
+      // Não passou no teste com valor do texto Youtube
+      .select("youtube")
+      .should("have.value", "youtube");
   });
   it("Seleciona um produto (Mentoria) pelo seu valor", function () {
-    cy.get('#product')
-        .select('mentoria')
-        .should('have.value', 'mentoria')
+    cy.get("#product").select("mentoria").should("have.value", "mentoria");
   });
   it("Seleciona um produto (Blog) pelo seu índice", function () {
-    cy.get('#product')
-        .select(1)
-        .should('have.value', 'blog')
+    cy.get("#product").select(1).should("have.value", "blog");
   });
 
   //Testes em input tipo RADIO
   it("Marca o tipo de atendimento 'Feedback' ", function () {
-    cy.get(':nth-child(4) > input')
-        .check()
-        .should('have.value', 'feedback')
+    cy.get(":nth-child(4) > input").check().should("have.value", "feedback");
   });
   it("Marca cada tipo de atendimento", function () {
     cy.get('input[type="radio"]')
-        .should('have.length', 3)
-        .each(function($radio) {
-            cy.wrap($radio).check()
-            cy.wrap($radio).should('be.checked')
-        })
+      .should("have.length", 3)
+      .each(function ($radio) {
+        cy.wrap($radio).check();
+        cy.wrap($radio).should("be.checked");
+      });
   });
   //Testes em input tipo CHECKBOX
   it("Marca ambos checkboxes, depois desmarca o ultimo", function () {
     cy.get('input[type="checkbox"]')
-        .check()
-        .should('be.checked')
-        .last()
-        .uncheck()
-        .should('not.be.checked')
+      .check()
+      .should("be.checked")
+      .last()
+      .uncheck()
+      .should("not.be.checked");
+  });
+  //Fazendo upload de arquivos
+  it("Seleciona um arquivo da pasta fixtures", function () {
+    cy.get("#file-upload")
+      //verifica se não tem file
+      .should("not.have.value")
+      //upload de arquivo
+      .selectFile("cypress/fixtures/example.json")
+      .should(function (input) {
+        expect(input[0].files[0].name).to.equal("example.json");
+      });
+  });
+  it("Seleciona um arquivo simulando drag-and-drop", function () {
+    cy.get("#file-upload")
+      .should("not.have.value")
+      .selectFile("cypress/fixtures/example.json", { action: "drag-drop" })
+      .should(function (input) {
+        expect(input[0].files[0].name).to.equal("example.json");
+      });
+  });
+  it("Seleciona um arquivo utilizando uma fixture para a qual foi dada um alias", function () {
+    cy.fixture("example.json").as("sampleFile");
+    cy.get("#file-upload")
+      .selectFile("@sampleFile")
+      .should(function (input) {
+        expect(input[0].files[0].name).to.equal("example.json");
+      });
+  });
+  // Lidando com links que abrem em outra aba
+  it("Verifica que a política de privacidade abre em outra aba sem a necessidade de um clique", function () {
+    cy.get("#privacy a").should("have.attr", "target", "_blank");
+  });
+  it("Acessa a página da política de privacidade removendo o target e então clicando no link", function () {
+    cy.get("#privacy a")
+    .invoke('removeAttr', 'target')
+    .click();
+    //Verificação na mesma aba
+    cy.contains("Privacy Policy").should("be.visible");
   });
 });
